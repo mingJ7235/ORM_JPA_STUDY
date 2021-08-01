@@ -23,12 +23,13 @@ public class PersistenceContext {
 //            em.persist(member2); //DB와 연결하는게 아니라, 쓰기지연 SQL저장소에 쿼리가 쌓임
 //            //모았다가 쿼리를 commit 하는 순간 소게됨 -> buffer를 통해 최적화 할 수 있다
 
-            Member member = em.find(Member.class, 150L);
-            member.setName("ZZZ"); //Dirty Checking : 변경을 감지해서 지가 알아서 update쿼리를 날려준다.
+//            Member member = em.find(Member.class, 150L);
+//            member.setName("ZZZ"); //Dirty Checking : 변경을 감지해서 지가 알아서 update쿼리를 날려준다.
 
 //            em.persist(member); -> 해줄필요가 없다.
 
-            System.out.println("=======================");
+//            System.out.println("=======================");
+
 
             tx.commit();
         } catch (Exception e) {
