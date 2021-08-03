@@ -40,7 +40,14 @@ public class Member {
         return team;
     }
 
+    //연관관계 편의 메서드 -> 양쪽 방향에 값을 설정해주자!
     public void setTeam(Team team) {
         this.team = team;
+        team.getMemberList().add(this); //매우 중요 !! -> null 값이 들어갈 우려를 줄인다.
+    }
+    //이름 바꾼 버전. -> setter 규약을 바꿔서 사용하는걸 추천
+    public void changeTeam(Team team) {
+        this.team = team;
+        team.getMemberList().add(this); //매우 중요 !! -> null 값이 들어갈 우려를 줄인다.
     }
 }
