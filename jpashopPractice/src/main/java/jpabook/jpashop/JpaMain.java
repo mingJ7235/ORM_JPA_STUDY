@@ -18,8 +18,6 @@ public class JpaMain {
 
         try {
 
-            Order order = new Order();
-            order.addOrderItem(new OrderItem());
 
             tx.commit(); //이때 쿼리가 날아감
         } catch (Exception e) {
