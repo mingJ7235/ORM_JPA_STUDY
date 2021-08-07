@@ -1,5 +1,7 @@
 package hellojpa;
 
+import hellojpa.lecture07extend.Movie;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
@@ -15,6 +17,21 @@ public class JpaMain {
         tx.begin();
 
         try {
+
+            Movie movie = new Movie();
+            movie.setDirector("director");
+            movie.setActor("actor");
+            movie.setName("바람과 함께 사라지다 ");
+            movie.setPrice(1000);
+
+            em.persist(movie);
+
+            em.flush();
+            em.clear();
+
+            Movie findMovie = em.find(Movie.class, movie.getId());
+            System.out.println("movie = "  + findMovie);
+
 //            Member member = new Member();
 //            member.setId(2L);
 //            member.setName("HelloB");
