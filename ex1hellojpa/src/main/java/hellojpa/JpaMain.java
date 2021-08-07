@@ -18,19 +18,35 @@ public class JpaMain {
 
         try {
 
-            Movie movie = new Movie();
-            movie.setDirector("director");
-            movie.setActor("actor");
-            movie.setName("바람과 함께 사라지다 ");
-            movie.setPrice(1000);
+//            Movie movie = new Movie();
+//            movie.setDirector("director");
+//            movie.setActor("actor");
+//            movie.setName("바람과 함께 사라지다 ");
+//            movie.setPrice(1000);
+//
+//            em.persist(movie);
 
-            em.persist(movie);
+            Member member1 = new Member();
+            member1.setUsername( "member1");
+            em.persist(member1);
 
             em.flush();
             em.clear();
 
-            Movie findMovie = em.find(Movie.class, movie.getId());
-            System.out.println("movie = "  + findMovie);
+            Member reference = em.getReference(Member.class, member1.getId());
+            System.out.println("reference.getClass() = " + reference.getClass());
+
+            System.out.println(reference instanceof Member); //proxy는 Member를 상속받은 것이므로, Member클래스이기도하다.
+
+            Member findmember = em.find(Member.class, member1.getId());
+            System.out.println("findmember.getClass() = " + findmember.getClass());
+
+
+
+            System.out.println(reference instanceof Member);
+
+//            Movie findMovie = em.find(Movie.class, movie.getId());
+//            System.out.println("findMovie = " + findMovie);
 
 //            Member member = new Member();
 //            member.setId(2L);
