@@ -26,24 +26,39 @@ public class JpaMain {
 //
 //            em.persist(movie);
 
+            Team team = new Team();
+            team.setName("team");
+            em.persist(team);
+
             Member member1 = new Member();
             member1.setUsername( "member1");
+            member1.setTeam(team);
             em.persist(member1);
 
             em.flush();
             em.clear();
 
-            Member reference = em.getReference(Member.class, member1.getId());
-            System.out.println("reference.getClass() = " + reference.getClass());
+            Member findMember = em.find(Member.class, member1.getId());
 
-            System.out.println(reference instanceof Member); //proxy는 Member를 상속받은 것이므로, Member클래스이기도하다.
+            System.out.println("team class = " + findMember.getTeam().getClass());
 
-            Member findmember = em.find(Member.class, member1.getId());
-            System.out.println("findmember.getClass() = " + findmember.getClass());
+            System.out.println("================");
+            findMember.getTeam().getName(); //Team 터치 proxy의 메소드를 터치할때 proxy는 빈값이므로, 불러오기 위해서 터치를 하게된다.
+            System.out.println("================");
 
 
 
-            System.out.println(reference instanceof Member);
+//            Member reference = em.getReference(Member.class, member1.getId());
+//            System.out.println("reference.getClass() = " + reference.getClass());
+//
+//            System.out.println(reference instanceof Member); //proxy는 Member를 상속받은 것이므로, Member클래스이기도하다.
+//
+//            Member findmember = em.find(Member.class, member1.getId());
+//            System.out.println("findmember.getClass() = " + findmember.getClass());
+//
+//
+//
+//            System.out.println(reference instanceof Member);
 
 //            Movie findMovie = em.find(Movie.class, movie.getId());
 //            System.out.println("findMovie = " + findMovie);

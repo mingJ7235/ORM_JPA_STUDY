@@ -17,7 +17,7 @@ public class Member extends BaseEntity{
 //    @Column (name = "TEAM_ID")
 //    private Long teamId;
 
-    @ManyToOne
+    @ManyToOne (fetch = FetchType.LAZY) //지연로딩 -> proxy객체로 조회한다.
     @JoinColumn (name = "TEAM_ID")
     private Team team;
 
@@ -36,9 +36,6 @@ public class Member extends BaseEntity{
     public void setUsername(String username) {
         this.username = username;
     }
-
-
-
 
     public Team getTeam() {
         return team;
