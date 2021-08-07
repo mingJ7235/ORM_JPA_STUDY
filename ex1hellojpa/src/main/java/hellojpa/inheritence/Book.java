@@ -1,8 +1,10 @@
-package hellojpa.lecture07extend;
+package hellojpa.inheritence;
 
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
 @Entity
+@DiscriminatorValue("b")
 public class Book extends Item{
 
     private String author;

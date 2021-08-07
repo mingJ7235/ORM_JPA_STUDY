@@ -1,11 +1,12 @@
 package hellojpa;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 
 //@Table (name = "USER")
-public class Member {
+public class Member extends BaseEntity{
     @Id @GeneratedValue
     @Column (name = "MEMBER_ID")
     private Long id;
@@ -35,6 +36,9 @@ public class Member {
     public void setUsername(String username) {
         this.username = username;
     }
+
+
+
 
     public Team getTeam() {
         return team;

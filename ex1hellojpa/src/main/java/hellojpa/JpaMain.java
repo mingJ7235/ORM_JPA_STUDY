@@ -1,6 +1,6 @@
 package hellojpa;
 
-import hellojpa.lecture07extend.Movie;
+import hellojpa.inheritence.Movie;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
