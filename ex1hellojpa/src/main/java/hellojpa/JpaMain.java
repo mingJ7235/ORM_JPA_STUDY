@@ -1,5 +1,7 @@
 package hellojpa;
 
+import hellojpa.cascade.Child;
+import hellojpa.cascade.Parent;
 import hellojpa.inheritence.Movie;
 
 import javax.persistence.EntityManager;
@@ -17,6 +19,21 @@ public class JpaMain {
         tx.begin();
 
         try {
+            Child child1 = new Child();
+            Child child2 = new Child();
+
+            Parent parent = new Parent();
+            parent.addChild(child1);
+            parent.addChild(child2);
+
+            em.persist(parent);
+
+            em.flush();
+            em.clear();
+
+            Parent findParent = em.find(Parent.class, parent.getId());
+            findParent.getChildList().remove(0);
+
 
 //            Movie movie = new Movie();
 //            movie.setDirector("director");
@@ -26,25 +43,25 @@ public class JpaMain {
 //
 //            em.persist(movie);
 
-            Team team = new Team();
-            team.setName("team");
-            em.persist(team);
-
-            Member member1 = new Member();
-            member1.setUsername( "member1");
-            member1.setTeam(team);
-            em.persist(member1);
-
-            em.flush();
-            em.clear();
-
-            Member findMember = em.find(Member.class, member1.getId());
-
-            System.out.println("team class = " + findMember.getTeam().getClass());
-
-            System.out.println("================");
-            findMember.getTeam().getName(); //Team 터치 proxy의 메소드를 터치할때 proxy는 빈값이므로, 불러오기 위해서 터치를 하게된다.
-            System.out.println("================");
+//            Team team = new Team();
+//            team.setName("team");
+//            em.persist(team);
+//
+//            Member member1 = new Member();
+//            member1.setUsername( "member1");
+//            member1.setTeam(team);
+//            em.persist(member1);
+//
+//            em.flush();
+//            em.clear();
+//
+//            Member findMember = em.find(Member.class, member1.getId());
+//
+//            System.out.println("team class = " + findMember.getTeam().getClass());
+//
+//            System.out.println("================");
+//            findMember.getTeam().getName(); //Team 터치 proxy의 메소드를 터치할때 proxy는 빈값이므로, 불러오기 위해서 터치를 하게된다.
+//            System.out.println("================");
 
 
 
