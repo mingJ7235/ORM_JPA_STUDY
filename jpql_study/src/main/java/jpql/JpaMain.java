@@ -12,13 +12,28 @@ public class JpaMain {
         tx.begin();
 
         try {
-            Member member = new Member();
-            member.setUserName("userName");
-            member.setAge(10);
-            em.persist(member);
+
+            for (int i = 0 ; i < 100; i ++) {
+                Member member = new Member();
+                member.setUserName("userName" + i);
+                member.setAge(i);
+                em.persist(member);
+
+            }
+
 
             em.flush();
             em.clear();
+
+            List<Member> resultList = em.createQuery("select m from Member m order by m.age desc", Member.class)
+                    .setFirstResult(10)
+                    .setMaxResults(20)
+                    .getResultList();
+
+            System.out.println("resultList size = " + resultList.size());
+            for (Member member1 : resultList) {
+                System.out.println("member1 = " + member1);
+            }
 
 //            List<Member> result = em.createQuery("select m from Member m", Member.class)
 //                    .getResultList();
@@ -36,12 +51,12 @@ public class JpaMain {
 //            List scalaResult1 = em.createQuery("select m.userName, m.age from Member m").getResultList();//스칼라 타입 프로젝션 -> 반환 타입을 쭈지 않는다. String, int 혼합이므로
 //            List<Object[]> scalaResult2 = em.createQuery("select m.userName, m.age from Member m").getResultList();//스칼라 타입 프로젝션 -> 반환 타입을 쭈지 않는다. String, int 혼합이므로
 
-
-            List<MemberDTO> resultList = em.createQuery("select new jpql.MemberDTO(m.userName, m.age) from Member m", MemberDTO.class).getResultList();//dto로 반환시키는 빵법
-            MemberDTO memberDTO = resultList.get(0);
-            System.out.println("memberDTO = " + memberDTO);
-            System.out.println("memberDTO.name = " + memberDTO.getUsername());
-            System.out.println("memberDTO.age = " + memberDTO.getAge());
+//
+//            List<MemberDTO> resultList = em.createQuery("select new jpql.MemberDTO(m.userName, m.age) from Member m", MemberDTO.class).getResultList();//dto로 반환시키는 빵법
+//            MemberDTO memberDTO = resultList.get(0);
+//            System.out.println("memberDTO = " + memberDTO);
+//            System.out.println("memberDTO.name = " + memberDTO.getUsername());
+//            System.out.println("memberDTO.age = " + memberDTO.getAge()); //스칼라
 
 //            TypedQuery<Member> query1 = em.createQuery("select m from Member m", Member.class);
 //            TypedQuery<String> query2 = em.createQuery("select m.username from Member m", String.class);
