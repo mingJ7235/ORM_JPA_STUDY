@@ -49,4 +49,12 @@ public class Team {
     public void setStockAmount(int stockAmount) {
         this.stockAmount = stockAmount;
     }
+
+    public List<Member> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<Member> members) {
+        this.members = members;
+    }
 }
