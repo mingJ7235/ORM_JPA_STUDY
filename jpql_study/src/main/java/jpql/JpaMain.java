@@ -28,10 +28,12 @@ public class JpaMain {
             em.flush();
             em.clear();
 
-            String query = "select t from Member m inner join m.team t";
+            String query1 = "select t from Member m inner join m.team t";
+            String query2 = "select t from Member m left join m.team t";
+            String query3 = "select t from Member m join m.team t";
 
 
-            List<Member> resultList = em.createQuery(query, Member.class)
+            List<Member> resultList = em.createQuery(query1, Member.class)
 //                    .setFirstResult(10)
 //                    .setMaxResults(20)
                     .getResultList();
