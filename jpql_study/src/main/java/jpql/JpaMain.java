@@ -20,6 +20,7 @@ public class JpaMain {
             Member member = new Member();
             member.setUserName("userName" );
             member.setAge(10);
+            member.setType(MemberType.USER);
 
             member.changeTeam(team);
 
@@ -31,6 +32,15 @@ public class JpaMain {
             String query1 = "select t from Member m inner join m.team t";
             String query2 = "select t from Member m left join m.team t";
             String query3 = "select t from Member m join m.team t";
+
+            String enumquery1 = "select m.userName from Member m" +
+                    " where m.type = jpql.MemberType.ADMIN"; //enum 이면 이렇게 패키지명을 다 적어줘야 한다.
+            String enumquery2 = "select m.userName from Member m" +
+                    " where m.type = :userType"; //이렇게 넣어주는 경우도 있다.
+
+            List<Member> resultEnumMember = em.createQuery(enumquery2, Member.class)
+                    .setParameter("userType", MemberType.ADMIN)
+                    .getResultList();
 
 
             List<Member> resultList = em.createQuery(query1, Member.class)
