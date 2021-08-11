@@ -28,25 +28,25 @@ public class JpaMain {
 
             em.flush();
             em.clear();
-
-            String query1 = "select t from Member m inner join m.team t";
-            String query2 = "select t from Member m left join m.team t";
-            String query3 = "select t from Member m join m.team t";
-
-            String enumquery1 = "select m.userName from Member m" +
-                    " where m.type = jpql.MemberType.ADMIN"; //enum 이면 이렇게 패키지명을 다 적어줘야 한다.
-            String enumquery2 = "select m.userName from Member m" +
-                    " where m.type = :userType"; //이렇게 넣어주는 경우도 있다.
-
-            List<Member> resultEnumMember = em.createQuery(enumquery2, Member.class)
-                    .setParameter("userType", MemberType.ADMIN)
-                    .getResultList();
-
-
-            List<Member> resultList = em.createQuery(query1, Member.class)
-//                    .setFirstResult(10)
-//                    .setMaxResults(20)
-                    .getResultList();
+//
+//            String query1 = "select t from Member m inner join m.team t";
+//            String query2 = "select t from Member m left join m.team t";
+//            String query3 = "select t from Member m join m.team t";
+//
+//            String enumquery1 = "select m.userName from Member m" +
+//                    " where m.type = jpql.MemberType.ADMIN"; //enum 이면 이렇게 패키지명을 다 적어줘야 한다.
+//            String enumquery2 = "select m.userName from Member m" +
+//                    " where m.type = :userType"; //이렇게 넣어주는 경우도 있다.
+//
+//            List<Member> resultEnumMember = em.createQuery(enumquery2, Member.class)
+//                    .setParameter("userType", MemberType.ADMIN)
+//                    .getResultList();
+//
+//
+//            List<Member> resultList = em.createQuery(query1, Member.class)
+////                    .setFirstResult(10)
+////                    .setMaxResults(20)
+//                    .getResultList();
 
 //            System.out.println("resultList size = " + resultList.size());
 //            for (Member member1 : resultList) {
@@ -91,6 +91,17 @@ public class JpaMain {
 //                    .getSingleResult();
 //            System.out.println("singleResult = " + singleResult.getUserName());
 
+            String query = "select " +
+                    "case when m.age <= 10 then '학생요금'" +
+                        " when m.age >= 60 then '경로요금'" +
+                        " else '일반요금' end " +
+                    "from Member m";
+
+            List<String> resultString = em.createQuery(query, String.class).getResultList();
+
+            for (String s : resultString) {
+                System.out.println("요금 : " + s);
+            }
 
             tx.commit();
         } catch (Exception e) {
