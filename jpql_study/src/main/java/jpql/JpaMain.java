@@ -13,18 +13,29 @@ public class JpaMain {
 
         try {
 
-            Team team = new Team();
-            team.setName("teamA");
-            em.persist(team);
+            Team teamA = new Team();
+            teamA.setName("teamA");
+            em.persist(teamA);
 
-            Member member = new Member();
-            member.setUserName("userName" );
-            member.setAge(10);
-            member.setType(MemberType.USER);
+            Team teamB = new Team();
+            teamB.setName("teamA");
+            em.persist(teamB);
 
-            member.changeTeam(team);
+            Member member1 = new Member();
+            member1.setUserName("userName1" );
+            member1.changeTeam(teamA);
+            em.persist(member1);
 
-            em.persist(member);
+            Member member2 = new Member();
+            member2.setUserName("userName2" );
+            member2.changeTeam(teamA);
+            em.persist(member2);
+
+            Member member3 = new Member();
+            member3.setUserName("userName3" );
+            member3.changeTeam(teamB);
+            em.persist(member3);
+
 
             em.flush();
             em.clear();
@@ -97,18 +108,33 @@ public class JpaMain {
 //                        " else '일반요금' end " +
 //                    "from Member m";
 
-            String query = "select m.username From Member m "; //상태 필드
-            String query2 = "select m.team from Member m" ; // 단일 값 연관 경로 : 묵시적 내부 조인 발생 -> 탐색을 한번 더 할 수 잇다.
-            //웬만하면 묵시적 내부 조인이 생기게끔 만들면 좋지않다. 성능 튜닝이 쉽지 않다.
+//            String query = "select m.username From Member m "; //상태 필드
+//            String query2 = "select m.team from Member m" ; // 단일 값 연관 경로 : 묵시적 내부 조인 발생 -> 탐색을 한번 더 할 수 잇다.
+//            //웬만하면 묵시적 내부 조인이 생기게끔 만들면 좋지않다. 성능 튜닝이 쉽지 않다.
+//
+//            String query3 = "select t.members from Team t"; //컬렉션 값 연관 경로 : 묵시적 내부 조인발생 -> 탐색을 할 수 없다. 잘 안쓴다.
+//            String query4 = "select m.username from Team t join t.membser m"; // 명시적 조인을 통해서 이렇게 탐색을 해줘야한다. query3의 보안
 
-            String query3 = "select t.members from Team t"; //컬렉션 값 연관 경로 : 묵시적 내부 조인발생 -> 탐색을 할 수 없다. 잘 안쓴다.
-            String query4 = "select m.username from Team t join t.membser m"; // 명시적 조인을 통해서 이렇게 탐색을 해줘야한다. query3의 보안
+            String query = "";
 
+            String sample1= "select m From Member m join fetch m.team"; //fetch join -> n+1 문제를 해결해준다.
 
-            List<Team> resultString = em.createQuery(query2, Team.class).getResultList();
+            String sample2 = "select distinct t From Team t join fetch t.members";
+            //distinct를 하면 중복이 제거된다. join하면서 data가 뻥튀기가 되므로, distinct를 하면 중복이 제거가된다.
+            //하지만, 완전히 똑같아야 sql입장에서는 중복제거가 된다.
+            //JPQL은 같은 식별자를 가진 Team 엔티티를 제거해준다.
 
-            for (Team s : resultString) {
-                System.out.println("요금 : " + s);
+            String sample3 = "select t From Team t join t.members m"; //일반 join을 하게 되면 쿼리가 n+1이 생길 수 잇다.
+
+            query = sample3;
+
+            List<Team> resultString = em.createQuery(query, Team.class).getResultList();
+
+            for (Team m: resultString) {
+                System.out.println("result : " + m.getName() + ", " + m.getMembers().size());
+                for (Member member : m.getMembers()) {
+                    System.out.println("->member" + member);
+                }
             }
 
             tx.commit();
