@@ -91,15 +91,22 @@ public class JpaMain {
 //                    .getSingleResult();
 //            System.out.println("singleResult = " + singleResult.getUserName());
 
-            String query = "select " +
-                    "case when m.age <= 10 then '학생요금'" +
-                        " when m.age >= 60 then '경로요금'" +
-                        " else '일반요금' end " +
-                    "from Member m";
+//            String query = "select " +
+//                    "case when m.age <= 10 then '학생요금'" +
+//                        " when m.age >= 60 then '경로요금'" +
+//                        " else '일반요금' end " +
+//                    "from Member m";
 
-            List<String> resultString = em.createQuery(query, String.class).getResultList();
+            String query = "select m.username From Member m "; //상태 필드
+            String query2 = "select m.team from Member m" ; // 단일 값 연관 경로 : 묵시적 내부 조인 발생 -> 탐색을 한번 더 할 수 잇다.
+            //웬만하면 묵시적 내부 조인이 생기게끔 만들면 좋지않다. 성능 튜닝이 쉽지 않다.
 
-            for (String s : resultString) {
+            String query3 = "select t.members from Team t"; //컬렉션 값 연관 경로 : 묵시적 내부 조인발생 -> 탐색을 할 수 없다. 잘 안쓴다.
+
+
+            List<Team> resultString = em.createQuery(query2, Team.class).getResultList();
+
+            for (Team s : resultString) {
                 System.out.println("요금 : " + s);
             }
 
