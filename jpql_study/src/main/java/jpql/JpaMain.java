@@ -102,6 +102,7 @@ public class JpaMain {
             //웬만하면 묵시적 내부 조인이 생기게끔 만들면 좋지않다. 성능 튜닝이 쉽지 않다.
 
             String query3 = "select t.members from Team t"; //컬렉션 값 연관 경로 : 묵시적 내부 조인발생 -> 탐색을 할 수 없다. 잘 안쓴다.
+            String query4 = "select m.username from Team t join t.membser m"; // 명시적 조인을 통해서 이렇게 탐색을 해줘야한다. query3의 보안
 
 
             List<Team> resultString = em.createQuery(query2, Team.class).getResultList();
