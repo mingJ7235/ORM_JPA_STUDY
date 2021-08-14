@@ -124,18 +124,35 @@ public class JpaMain {
             //하지만, 완전히 똑같아야 sql입장에서는 중복제거가 된다.
             //JPQL은 같은 식별자를 가진 Team 엔티티를 제거해준다.
 
+
+
+
             String sample3 = "select t From Team t join t.members m"; //일반 join을 하게 되면 쿼리가 n+1이 생길 수 잇다.
+
+            String sample4 ="select m from Member m where m = :member";
 
             query = sample3;
 
             List<Team> resultString = em.createQuery(query, Team.class).getResultList();
 
-            for (Team m: resultString) {
-                System.out.println("result : " + m.getName() + ", " + m.getMembers().size());
-                for (Member member : m.getMembers()) {
-                    System.out.println("->member" + member);
-                }
+//            Member findMember = em.createQuery(sample4, Member.class).setParameter("member", member1).getSingleResult();
+
+            List<Member> resultList = em.createNamedQuery("Member.findByUserName", Member.class)
+                    .setParameter("userName", "userName1")
+                    .getResultList();
+
+            for (Member member : resultList) {
+                System.out.println("member = " + member);
             }
+
+
+//            System.out.println("member4 = " + findMember);
+//            for (Team m: resultString) {
+//                System.out.println("result : " + m.getName() + ", " + m.getMembers().size());
+//                for (Member member : m.getMembers()) {
+//                    System.out.println("->member" + member);
+//                }
+//            }
 
             tx.commit();
         } catch (Exception e) {
