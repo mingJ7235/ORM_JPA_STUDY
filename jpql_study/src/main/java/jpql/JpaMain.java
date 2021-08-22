@@ -137,13 +137,26 @@ public class JpaMain {
 
 //            Member findMember = em.createQuery(sample4, Member.class).setParameter("member", member1).getSingleResult();
 
-            List<Member> resultList = em.createNamedQuery("Member.findByUserName", Member.class)
-                    .setParameter("userName", "userName1")
-                    .getResultList();
+//            List<Member> resultList = em.createNamedQuery("Member.findByUserName", Member.class)
+//                    .setParameter("userName", "userName1")
+//                    .getResultList();
+//
+//            for (Member member : resultList) {
+//                System.out.println("member = " + member);
+//            }
 
-            for (Member member : resultList) {
-                System.out.println("member = " + member);
-            }
+            int resultCount = em.createQuery("update Member m set m.age = 20")
+                    .executeUpdate(); //bulk 연산
+            System.out.println("resultCount = " + resultCount);
+
+//            em.createQuery("delete from Member m")
+//                    .executeUpdate();
+////
+//            for (Object o : resultList) {
+//                System.out.println("o = " + o);
+//            }
+
+
 
 
 //            System.out.println("member4 = " + findMember);
