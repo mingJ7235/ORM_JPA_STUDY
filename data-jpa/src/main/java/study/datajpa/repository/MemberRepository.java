@@ -6,6 +6,7 @@ import org.springframework.data.repository.query.Param;
 import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
@@ -29,4 +30,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     //but, QueryDSL을 사용하면 이것도 편해진다.
     @Query("select new study.datajpa.dto.MemberDto(m.id, m.username, t.name) from Member m join m.team t")
     List<MemberDto> findMemberDto();
+
+    @Query ("select m from Member m where m.username in :names")
+    List<Member> findByNames (@Param("names") Collection<String> names);
+
 }
