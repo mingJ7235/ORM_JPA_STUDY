@@ -106,7 +106,7 @@ class MemberRepositoryTest {
 
         List<Member> result = memberRepository.findByNames(Arrays.asList("AAA", "BBB"));
         for (Member member : result) {
-            System.out.println("member = " + member);
+            System.out.println("member name = " + member);
         }
     }
 }
