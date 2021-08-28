@@ -109,4 +109,32 @@ class MemberRepositoryTest {
             System.out.println("member name = " + member);
         }
     }
+
+    /**
+     * Spring Data JPA 는 반환타입이 매우 유연하게 적용된다.
+     */
+    @Test
+    public void returnTypeTest () {
+        Member m1 = new Member("AAA", 10);
+        Member m2 = new Member("AAA", 20);
+
+        memberRepository.save(m1);
+        memberRepository.save(m2);
+
+        List<Member> aaa = memberRepository.findListbyUsername("AAA"); //컬렉션조회
+
+        List<Member> result = memberRepository.findListbyUsername("dfssfds");//빈 컬렉션을 조회하는경우
+        System.out.println(result.size()); //null이아니다. 없으면 EmptyCollection이 조회된다.
+
+
+        Member aaa1 = memberRepository.findMemberbyUsername("AAA");
+        Member nullmember = memberRepository.findMemberbyUsername("ㅁㄴㅇㅁㄴㅇㅁㄴ");//단건조회는 없을경우 null을 반환한다.
+
+        Optional<Member> optionalmember = memberRepository.findOptionalByUsername("asease"); //optional로 반환하는 것이 가장 좋다. null일경우 Optional.empty가 찍힌다.
+
+        Optional<Member> aaa2 = memberRepository.findOptionalByUsername("AAA");//AAA가 두명일경우 Exception이 터진다.
+
+
+    }
+
 }

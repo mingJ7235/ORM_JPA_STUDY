@@ -8,6 +8,7 @@ import study.datajpa.entity.Member;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
     //쿼리메소드 기능
@@ -33,5 +34,12 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     @Query ("select m from Member m where m.username in :names")
     List<Member> findByNames (@Param("names") Collection<String> names);
+    /**
+     * Spring jpa는 반환타입이 아주 유연하다.
+     */
+
+    List<Member> findListbyUsername (String username); //컬렉션
+    Member findMemberbyUsername (String username); //단건
+    Optional<Member> findOptionalByUsername (String username); //단건 optional
 
 }
