@@ -38,8 +38,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
      * Spring jpa는 반환타입이 아주 유연하다.
      */
 
-    List<Member> findListbyUsername (String username); //컬렉션
-    Member findMemberbyUsername (String username); //단건
+    List<Member> findListByUsername (String username); //컬렉션
+    Member findMemberByUsername (String username); //단건
     Optional<Member> findOptionalByUsername (String username); //단건 optional
 
 }
