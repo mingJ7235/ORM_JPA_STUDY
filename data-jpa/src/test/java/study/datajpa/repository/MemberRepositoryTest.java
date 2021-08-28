@@ -4,6 +4,10 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
@@ -12,6 +16,7 @@ import study.datajpa.entity.Team;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -136,5 +141,50 @@ class MemberRepositoryTest {
 
 
     }
+
+    @Test
+    public void paging () {
+
+        //given
+        for (int i = 0; i < 10; i++) {
+            memberRepository.save(new Member("member"+i, 10));
+        }
+
+        int age = 10;
+        //0부터 페이지가 시작함
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+        //PageRequest는 Pageable을 구현한다.
+
+        //when
+        Page<Member> page = memberRepository.findByAge(age, pageRequest); //totalcount를 가져올 필요도없다.
+//        Slice<Member> page = memberRepository.findByAge(age, pageRequest); //count쿼리를 날리지 않는다. limit를 +1 해서 조회해준다.
+
+        /**
+         * page의 Member엔티티를 그대로 반환하면안된다.
+         * dto로 변환해야한다.
+         */
+        Page<MemberDto> dtoPage = page.map(MemberDto::new); //dto는 api로 반환 가능
+
+        //then
+        List<Member> content = page.getContent(); //내부의 컨텐츠를 가져온다.
+        //long totalElements = page.getTotalElements(); //total count다 //slice에는 없다.
+
+
+
+//        for (Member member : content) {
+//            System.out.println("member = " + member);
+//        }
+//        System.out.println("totalElements = " + totalElements);
+
+        assertThat(content.size()).isEqualTo(3);
+        assertThat(page.getTotalElements()).isEqualTo(10); //slice에는 없다.
+        assertThat(page.getNumber()).isEqualTo(0); //page 넘버도 가져올수있다. 엄청남.
+        assertThat(page.getTotalPages()).isEqualTo(4); //총 페이지는 몇인지 알려줌 //slice에는 없는 기능임
+        assertThat(page.isFirst()).isTrue(); //첫번째 페이지냐?
+        assertThat(page.hasNext()).isTrue(); // 다음페이지가 잇냐?
+
+
+    }
+    
 
 }
