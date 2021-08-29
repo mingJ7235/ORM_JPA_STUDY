@@ -209,7 +209,7 @@ class MemberRepositoryTest {
         System.out.println("member5 age = " + member); //업데이트 벌크연산을 하면 바로 DB에 때려버리는데, 영속성 컨텍스트에는 바뀌지않은 정보가 남아있다.
         /**
          * 즉, 1차 캐시에 저장되어있다.
-         * 영속성 컨텍스트를 무시하고 DB에 update를 때린다.
+         * 영속성 컨텍스트를 무시하고 DB에 update를 때린다.e
          * 그러므로 벌크연산 후에 영속성컨텍스트를 날려야한다. -> em.flush(), em.clear(). 해줘야한다.
          * 영속성컨텍스트에 있는것을 날려버린다.
          * 하지만 Spring data jpa는 인터페이스에 @Modifying (clearAutomatically = true) 옵션을 주면 생략가능하다.

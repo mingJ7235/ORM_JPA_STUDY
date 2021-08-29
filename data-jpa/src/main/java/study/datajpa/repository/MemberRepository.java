@@ -38,6 +38,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     @Query ("select m from Member m where m.username in :names")
     List<Member> findByNames (@Param("names") Collection<String> names);
+
     /**
      * Spring jpa는 반환타입이 아주 유연하다.
      */
@@ -61,9 +62,13 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     /**
      * bulk연산
      */
-    @Modifying(clearAutomatically = true) //이게 있어야 update가 된다. 벌크연산을 위해서 modifying 필요
-    //clearAutomatically = true : 영속성 컨텍스트를 자동적으로 날려준다. em.clear의 효과다.
-    @Query ("update Member m set m.age = m.age +1 where m.age >= :age")
+//    @Modifying(clearAutomatically = true) //이게 있어야 update가 된다. 벌크연산을 위해서 modifying 필요
+//    //clearAutomatically = true : 영속성 컨텍스트를 자동적으로 날려준다. em.clear의 효과다.
+//    @Query ("update Member m set m.age = m.age +1 where m.age >= :age")
+//    int bulkAgePlus (@Param("age") int age);
+
+    @Modifying (clearAutomatically = true)
+    @Query ("update Member m set m.age = m.age + 1 where m.age >= :age")
     int bulkAgePlus (@Param("age") int age);
 
 
