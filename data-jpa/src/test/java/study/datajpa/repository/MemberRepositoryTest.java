@@ -201,8 +201,8 @@ class MemberRepositoryTest {
 
         //when
         int resultCount = memberRepository.bulkAgePlus(20);
-        em.flush();
-        em.clear();
+        //em.flush(); Repository interface에서 @Modifying 에서 clearAutomatically 옵션을 넣어줘야한다.
+        //em.clear();
 
         List<Member> result = memberRepository.findByUsername("member5");
         Member member = result.get(0); //요놈이 22일까 23일까. 영속성 컨텍스트!
@@ -212,6 +212,7 @@ class MemberRepositoryTest {
          * 영속성 컨텍스트를 무시하고 DB에 update를 때린다.
          * 그러므로 벌크연산 후에 영속성컨텍스트를 날려야한다. -> em.flush(), em.clear(). 해줘야한다.
          * 영속성컨텍스트에 있는것을 날려버린다.
+         * 하지만 Spring data jpa는 인터페이스에 @Modifying (clearAutomatically = true) 옵션을 주면 생략가능하다.
          */
         //이걸 주의해야한다.
 
