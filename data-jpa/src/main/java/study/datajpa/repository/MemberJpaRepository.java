@@ -70,5 +70,14 @@ public class MemberJpaRepository {
                 .getSingleResult();
     }
 
+    /**
+     * 회원나이를 한버에 변경하는 벌크연산
+     */
+    public int bulkAgePlus(int age) {
+        return em.createQuery("update Member m set m.age = m.age+1 where m.age >= :age")
+                .setParameter("age", age)
+                .executeUpdate();
+    }
+
 }
 

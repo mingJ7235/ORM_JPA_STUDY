@@ -13,6 +13,8 @@ import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 import study.datajpa.entity.Team;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +30,9 @@ class MemberRepositoryTest {
     @Autowired MemberRepository memberRepository;
 
     @Autowired TeamRepository teamRepository;
+
+    @PersistenceContext
+    EntityManager em;
 
     @Test
     public void testMember () {
@@ -184,6 +189,34 @@ class MemberRepositoryTest {
         assertThat(page.hasNext()).isTrue(); // 다음페이지가 잇냐?
 
 
+    }
+    @Test
+    public void bulkUpdate () {
+        //given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 19));
+        memberRepository.save(new Member("member3", 20));
+        memberRepository.save(new Member("member4", 21));
+        memberRepository.save(new Member("member5", 22));
+
+        //when
+        int resultCount = memberRepository.bulkAgePlus(20);
+        em.flush();
+        em.clear();
+
+        List<Member> result = memberRepository.findByUsername("member5");
+        Member member = result.get(0); //요놈이 22일까 23일까. 영속성 컨텍스트!
+        System.out.println("member5 age = " + member); //업데이트 벌크연산을 하면 바로 DB에 때려버리는데, 영속성 컨텍스트에는 바뀌지않은 정보가 남아있다.
+        /**
+         * 즉, 1차 캐시에 저장되어있다.
+         * 영속성 컨텍스트를 무시하고 DB에 update를 때린다.
+         * 그러므로 벌크연산 후에 영속성컨텍스트를 날려야한다. -> em.flush(), em.clear(). 해줘야한다.
+         * 영속성컨텍스트에 있는것을 날려버린다.
+         */
+        //이걸 주의해야한다.
+
+        //then
+        assertThat(resultCount).isEqualTo(3);
     }
     
 
