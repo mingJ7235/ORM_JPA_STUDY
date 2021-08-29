@@ -19,17 +19,17 @@ public class Member {
 
     @ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn (name = "team_id")
-    private Team team;
+    private Team teamss;
 
     public Member(String username) {
         this.username = username;
     }
 
-    public Member(String username, int age, Team team) {
+    public Member(String username, int age, Team teamss) {
         this.username = username;
         this.age = age;
-        if (team != null) {
-            changeTeam(team);
+        if (teamss != null) {
+            changeTeam(teamss);
         }
     }
 
@@ -40,7 +40,7 @@ public class Member {
 
     //연관관계 편의 메소드
     public void changeTeam (Team team) {
-        this.team = team;
+        this.teamss = team;
         team.getMembers().add(this);
     }
 

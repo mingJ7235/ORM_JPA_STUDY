@@ -1,12 +1,10 @@
 package study.datajpa.repository;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.dto.MemberDto;
@@ -18,10 +16,8 @@ import javax.persistence.PersistenceContext;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
@@ -97,7 +93,7 @@ class MemberRepositoryTest {
         teamRepository.save(team);
 
         Member m1 = new Member("AAA", 10);
-        m1.setTeam(team);
+        m1.setTeamss(team);
         memberRepository.save(m1);
 
         List<MemberDto> memberDto = memberRepository.findMemberDto();
@@ -219,6 +215,38 @@ class MemberRepositoryTest {
         //then
         assertThat(resultCount).isEqualTo(3);
     }
-    
+
+    @Test
+    public void findMemberLazy () {
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+
+        Member member1 = new Member("member1", 10, teamA);
+        Member member2 = new Member("member2", 10, teamB);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        em.flush();
+        em.clear();
+
+        //when
+        //select Member 만 조회함. 이 쿼리만 나감
+        List<Member> members = memberRepository.findAll();
+//        List<Member> members = memberRepository.findMemberFetchJoin();
+
+        for (Member member : members) {
+            System.out.println("member = " + member.getUsername());
+
+            //Team을 touch함. -> proxy를 조회
+            System.out.println("member.teamClass = " + member.getTeamss().getClass());
+            //진짜 안의 데이터를 가져오기위해서 DB에서 조회.
+            System.out.println("member.getTeam().getName() = " + member.getTeamss().getName()); //N+1문제
+            //실무에서 많이 보게되는 문제
+        }
+    }
+
 
 }

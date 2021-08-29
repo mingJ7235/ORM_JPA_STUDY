@@ -3,6 +3,7 @@ package study.datajpa.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -33,7 +34,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     //DTO를 반환하려고할때는 이렇게 new operation을 통해서 반환시켜야한다.
     //but, QueryDSL을 사용하면 이것도 편해진다.
-    @Query("select new study.datajpa.dto.MemberDto(m.id, m.username, t.name) from Member m join m.team t")
+    @Query("select new study.datajpa.dto.MemberDto(m.id, m.username, t.name) from Member m join m.teamss t")
     List<MemberDto> findMemberDto();
 
     @Query ("select m from Member m where m.username in :names")
@@ -55,7 +56,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
      */
 //    Page<Member> findByAge (int age, Pageable pageable);
 
-    @Query (value = "select m from Member m left join m.team t",
+    @Query (value = "select m from Member m left join m.teamss t",
             countQuery = "select count (m) from Member m") //count 쿼리에 대해서 최적화 하는 것임. join이 없이 데이터를 깔끔하게 가져오도록 함. 실무에서 복잡할때 사용
     Page<Member> findByAge (int age, Pageable pageable);
 
@@ -72,4 +73,29 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     int bulkAgePlus (@Param("age") int age);
 
 
+    /**
+     * fetch join을 사용 : 연관관계인 것을 한번에 가져온다.
+     * lazy 로딩을 해야하므로 이렇게 fetch join을 하는 것.
+     * 객체 그래프를 join을 활용하여 다 끌고 오는 것이다.
+     * fetch join을 위해서는 JPQL을 써야하는가? nono
+     * Entity graph를 사용한다. !!
+     */
+    @Query ("select m from Member m left join fetch m.teamss")
+    List<Member> findMemberFetchJoin();
+
+    //Entity graph
+    @Override
+    @EntityGraph(attributePaths = {"teamss"}) //JPQL을 안짜고 함께 조회하고싶은 Entity의 연관관계를 맺은 Entity의 필드명
+    List<Member> findAll();
+
+    @EntityGraph (attributePaths = {"teamss"})
+    @Query ("select m from Member m")
+    List<Member> findMemberEntityGraph ();
+
+    /**
+     * 메소드네이밍쿼리 + EntityGraph (fetch join) 을 한번에 사용할 수 있음
+     * 간단할때는 EntityGraph쓰고, 조금 복잡하면 JPQL의 fetch join을 사용한다.
+     */
+    @EntityGraph (attributePaths = {"teamss"})
+    List<Member> findEntityGraphByUsername (@Param("username") String username);
 }

@@ -10,8 +10,6 @@ import javax.persistence.PersistenceContext;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest
 @Transactional
 @Rollback (false)
@@ -48,7 +46,7 @@ class MemberTest {
 
         for (Member member : select_m_from_member_m) {
             System.out.println("member =" +member);
-            System.out.println("team = " + member.getTeam()) ;
+            System.out.println("team = " + member.getTeamss()) ;
         }
     }
 }
