@@ -248,5 +248,29 @@ class MemberRepositoryTest {
         }
     }
 
+    @ Test
+    public void queryHint () {
+        //given
+        Member member1 = memberRepository.save(new Member("member1", 10));
+        em.flush();
+        em.clear();
+
+        //when
+        Member findMember = memberRepository.findReadOnlyByUsername(member1.getUsername()); //최적화를 해버려서 snapshot을 안만든다. 그래서 변경이되지않는다. 오로지 readonly
+        findMember.setUsername("member2"); //readonly이므로 변경감지 즉, 더티체킹을 안한다. 즉, update가 되지 않는다.
+        em.flush();
+    }
+
+    @Test
+    public void lock () {
+        //given
+        Member member1 = memberRepository.save(new Member("member1", 10));
+        em.flush();
+        em.clear();
+
+        //when
+        List<Member> result = memberRepository.findLockByUsername(member1.getUsername());
+    }
+
 
 }

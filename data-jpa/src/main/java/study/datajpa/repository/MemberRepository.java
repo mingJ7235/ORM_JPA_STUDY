@@ -3,14 +3,13 @@ package study.datajpa.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 
+import javax.persistence.LockModeType;
+import javax.persistence.QueryHint;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -98,4 +97,21 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
      */
     @EntityGraph (attributePaths = {"teamss"})
     List<Member> findEntityGraphByUsername (@Param("username") String username);
+
+
+    /**
+     * Hints
+     * Hibernate에게 hint를 준다. 오로지 읽기목적으로만 쿼리를 가져온다면, 이렇게 사용하면 메모리 최적화가 된다.
+     * 성능최적화를 위해 사용을 하지만, 잘 사용하지 않는다.
+     * 성능테스트 후에 결정하는 것이 좋다.
+     */
+    @QueryHints (value = @QueryHint(name = "org.hibernate.readOnly", value = "true"))
+    Member findReadOnlyByUsername (String username);
+
+    /**
+     * Lock
+     * 내용이 깊은 부분이다. isolation... 어려운내용 -> 책을 좀 봐야할듯
+     */
+    @Lock (LockModeType.PESSIMISTIC_WRITE)
+    List<Member> findLockByUsername (String username);
 }
