@@ -272,5 +272,12 @@ class MemberRepositoryTest {
         List<Member> result = memberRepository.findLockByUsername(member1.getUsername());
     }
 
+    @Test
+    public void callCustom () {
+        //custom 한 인터페이스를 만들고, 구현할 class를 만든 후에 구현. 그 후에 custom한 인터페이스를 MemberRepository가 상속받도록한다.
+        //QueryDSL에서 많이 사용된다. 이럴때 custom에서 많이 사용한다.
+        List<Member> result = memberRepository.findMemberCustom();
+    }
+
 
 }
