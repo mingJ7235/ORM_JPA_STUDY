@@ -15,6 +15,9 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 public class BaseTimeEntity {
 
+    /**
+     * 이렇게 따로 Entity를 빼서 사용하느것이 좋다.
+     */
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdDate;

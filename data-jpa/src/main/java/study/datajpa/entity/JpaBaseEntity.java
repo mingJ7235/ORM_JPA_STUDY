@@ -19,6 +19,7 @@ public class JpaBaseEntity {
 
     /**
      * 하지만, Spring Data JPA 에서는 prePersist, preUpdate 등을 안써도 된다. 해결해놓음
+     * spring DATA jpa 사용!
      */
 
     @PrePersist //persist하기전에 이벤트가 발생함
