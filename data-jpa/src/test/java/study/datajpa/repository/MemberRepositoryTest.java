@@ -1,5 +1,6 @@
 package study.datajpa.repository;
 
+import javafx.beans.binding.When;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -346,5 +347,32 @@ class MemberRepositoryTest {
         assertThat(result.get(0).getUsername()).isEqualTo("m1");
     }
 
+    @Test
+    public void projections () {
+        //given
+        Team teamA = new Team("teamA");
+        em.persist(teamA);
+
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+
+        em.persist(m1);
+        em.persist(m2);
+
+        //when
+        List<UsernameOnlyDto> result1 = memberRepository.findProjectionsByUsername("m1");
+        List<UsernameOnlyDto> result2  = memberRepository.findProjectionsGenericByUsername("m1", UsernameOnlyDto.class);
+
+        for (UsernameOnlyDto usernameOnly : result1) {
+            System.out.println("usernameOnly = " + usernameOnly);
+        }
+
+        List<NestedClosedProjections> result3 = memberRepository.findProjectionsGenericByUsername("m1", NestedClosedProjections.class);
+        for (NestedClosedProjections nestedClosedProjections : result3) {
+            System.out.println("nestedClosedProjections = " + nestedClosedProjections);
+
+        }
+
+    }
 
 }

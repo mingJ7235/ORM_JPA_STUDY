@@ -119,6 +119,15 @@ public interface MemberRepository extends JpaRepository<Member, Long>, MemberRep
      * Auditing : 생성, 변경할때 그렇게 한 사람과 시간을 추적 하기 위함.
      */
 
+    /**
+     * Projections
+     * DTO 값만을 가져오고싶을때 유용하게 사용된다.
+     * UsernameOnly라는 인터페이스를 만들어놓으면 구현체를 스프링이 반환해준다.
+     * 데이터를 간단하게 원하는 것만 찍어서 가져올때 Projections를 사용된다.
+     */
+    List<UsernameOnlyDto> findProjectionsByUsername (@Param("username") String username);
+
+    <T> List<T> findProjectionsGenericByUsername (@Param("username") String username, Class<T> type);
 
 
 }
