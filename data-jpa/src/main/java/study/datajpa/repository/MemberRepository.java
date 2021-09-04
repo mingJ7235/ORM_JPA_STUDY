@@ -129,5 +129,20 @@ public interface MemberRepository extends JpaRepository<Member, Long>, MemberRep
 
     <T> List<T> findProjectionsGenericByUsername (@Param("username") String username, Class<T> type);
 
+    /**
+     * native query를 짜는 방법
+     * but, 한계가 많다.
+     * 반환 type이 몇가지 지원을 안한다.
+     *
+     * - JPQL 처럼 어플리케이션 로딩시점에 문법 확인이 불가하다.
+     * - 동적 쿼리 불가
+     *
+     * projections를 사용할 수있다.
+     */
+    @Query (value = "select * from member where username = ?", nativeQuery = true)
+    Member findByNativeQuery (String username);
+
+    Page<MemberProjection> findByNativeProjection
+
 
 }
