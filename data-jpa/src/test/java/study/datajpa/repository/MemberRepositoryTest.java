@@ -4,9 +4,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 import study.datajpa.dto.MemberDto;
@@ -19,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -299,7 +298,52 @@ class MemberRepositoryTest {
         Specification<Member> spec = MemberSpec.username("m1").and(MemberSpec.teamName("teamA"));
         List<Member> result = memberRepository.findAll(spec);
 
-        Assertions.assertThat(result.size()).isEqualTo(1);
+        assertThat(result.size()).isEqualTo(1);
+    }
+
+    @Test
+    public void queryByExample () {
+        //given
+        Team teamA = new Team("teamA");
+        em.persist(teamA);
+
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+
+        em.persist(m1);
+        em.persist(m2);
+        
+        em.flush();
+        em.clear();
+        
+        //when
+        //Probe 생성 prob란 필드에 데이터가 있는 실제 도메인 객체
+        Member member = new Member("m1");
+        Team team = new Team("teamA");
+        member.setTeamss(team); //연관관계를
+
+        /**
+         * join이 잘안된다. inner join까지만 가능함.
+         * 복잡한 left, outer join이 필요할 때, 걷어내야한다.
+         * - 장점
+         * 동적쿼리를 편리하게 처리가 가능하다.
+         * 도메인 객체를 그대로 사용할 수 있다.
+         * 데이터 저장소를 RDB에서 nosql로 변경해도 코드 변경없이 사용할 수 있도록 추상화 가능하다.
+         *
+         * - 단점
+         * join은 가능하지만 inner만 가능, left join은 안된다.
+         * 매칭조건이 매우 단순하다 (equal 수준만 가능하다.) 즉, 활용도가 높지않다.
+         *
+         * => QueryDSL을 사용하자!
+         */
+
+        ExampleMatcher match = ExampleMatcher.matching()
+                .withIgnorePaths("age"); //검색하기 위해 속성을 무시한다. primitive 타입인 age는 무시하지않으면 기본값으로 0이들어가기때문에, 그 값을 조회한다.
+
+        Example<Member> example = Example.of(member, match);//entity로 example을 사용하는 것
+        List<Member> result = memberRepository.findAll(example);
+
+        assertThat(result.get(0).getUsername()).isEqualTo("m1");
     }
 
 
