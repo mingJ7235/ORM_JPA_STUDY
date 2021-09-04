@@ -13,6 +13,7 @@ public class MemberSpec {
      * 가독성이 안좋고, 복잡하다.
      * 실무에서 안쓴다. 직관적이지 않다. Sql이나 JPQL을 만드는것이 목적인데, 너무 복잡함.
      * QueryDsl을 사용하자.
+     * QueryDsl은 동적쿼리를 훨씬 편하게 사용가능하다
      */
 
     public static Specification<Member> teamName (final String teamName) {
