@@ -390,6 +390,14 @@ class MemberRepositoryTest {
         Member result = memberRepository.findByNativeQuery("m1");
         System.out.println("result = " + result);
 
+        Page<MemberProjection> result1 = memberRepository.findByNativeProjection(PageRequest.of(0, 10));
+        List<MemberProjection> content = result1.getContent();
+        for (MemberProjection memberProjection : content) {
+            System.out.println("memberProjection.getUsername() = " + memberProjection.getUsername());
+            System.out.println("memberProjection.getTeamname() = " + memberProjection.getTeamname());
+        }
+
+
     }
 
 

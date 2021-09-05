@@ -142,7 +142,18 @@ public interface MemberRepository extends JpaRepository<Member, Long>, MemberRep
     @Query (value = "select * from member where username = ?", nativeQuery = true)
     Member findByNativeQuery (String username);
 
-    Page<MemberProjection> findByNativeProjection
+    /**
+     * 네이티브 쿼리를 사용할 때 projection을 사용해서 해결할 수 있다.
+     * 페이징도 가능하다.
+     * 정적 네이티브 쿼리에서는 해결이 되지만, 동적인 네이티브 쿼리는 사용이 안된다.
+     *
+     * but, 네이티브 쿼리는 가급적 안쓰는 것이 좋다.
+     * 대부분 QueryDSL로 처리한다. (즉, JPQL로 ...)
+     */
+    @Query(value = "select m.member_id as id, m.username, t.name as teamName from member m left join team t",
+            countQuery = "select count(*) from member", //count까지해줘야한다. 페이징 때문에
+            nativeQuery = true)
+    Page<MemberProjection> findByNativeProjection (Pageable pageable);
 
 
 }
