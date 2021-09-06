@@ -3,6 +3,7 @@ package com.example.querydslstudy;
 import com.example.querydslstudy.entity.Member;
 import com.example.querydslstudy.entity.QMember;
 import com.example.querydslstudy.entity.Team;
+import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 
+import java.util.List;
+
+import static com.example.querydslstudy.entity.QMember.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -66,14 +70,96 @@ public class QuerydslBasicTest {
     @Test
     public void startQuerydsl () {
 
-        QMember m = new QMember("m"); //이건 실무에서 안쓴다. Qmember.member를 사용함
+        //QMember m = new QMember("m"); //이건 실무에서 안쓴다. static import를 한다.
 
         Member findMember = queryFactory
-                .select(m)
-                .from(m)
-                .where(m.username.eq("member1")) //parameter binding이 필요없다. jdbc에 있는 preparestatment를 사용해서 자동으로 해줌.
+                .select(member) //QMember를 static import를 통하여 사용한다.
+                .from(member)
+                .where(member.username.eq("member1")) //parameter binding이 필요없다. jdbc에 있는 preparestatment를 사용해서 자동으로 해줌.
                 .fetchOne();
+
         assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
+
+    @Test
+    public void search () {
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1")
+                        .and(member.age.between(10, 30)))
+                .fetchOne();
+
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
+
+    @Test
+    public void searchAndParam () {
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(
+                        member.username.eq("member1")
+                        ,member.age.eq(10) //and를 ,로 끊어서 갈수 도있다. 여러개를 ,로 연결하면 디폴트로 and로 연결된다.
+                )
+                .fetchOne();
+
+        assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
+
+    @Test
+    public void resultFetch () {
+        List<Member> fetch = queryFactory
+                .selectFrom(member)
+                .fetch(); //list로 조회
+
+        Member fetchOne = queryFactory
+                .selectFrom(QMember.member)
+                .fetchOne(); //단건조회 / 결과없으면 null. 2개이상이면 nonunique 예외 터짐
+
+        Member fetchFirst = queryFactory
+                .selectFrom(QMember.member)
+                .fetchFirst();// .limit(1).fetchOne() 과 같다.
+
+
+        QueryResults<Member> results = queryFactory
+                .selectFrom(member)
+                .fetchResults();
+        results.getTotal(); //paging을 하기위한 total count를 가져옴
+        List<Member> content = results.getResults(); //content를 가져옴
+
+        //count query만 가져오는 것임
+        long total = queryFactory
+                .selectFrom(member)
+                .fetchCount();
+    }
+
+    // 정렬
+
+    /**
+     * 회원 정렬순서
+     * 1. 회원 나이 내림차순 (desc)
+     * 2. 회원 이름 올림차순 (asc)
+     * 단 2에서 회원 이름이 없으면 마지막에 출력 (null last 기능)
+     */
+    @Test
+    public void sort() {
+        em.persist(new Member(null, 100));
+        em.persist(new Member("member5", 100));
+        em.persist(new Member("member6", 100));
+
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .where(member.age.eq(100)) //위의 예제에서는 다 100살이라 이렇게하는것
+                .orderBy(member.age.desc(), member.username.asc().nullsLast())
+                .fetch();
+
+        Member member5 = result.get(0);
+        Member member6 = result.get(1);
+        Member memberNull = result.get(2);
+
+        assertThat(member5.getUsername()).isEqualTo("member5");
+        assertThat(member6.getUsername()).isEqualTo("member6");
+        assertThat(memberNull.getUsername()).isNull();
+
     }
 
 }
