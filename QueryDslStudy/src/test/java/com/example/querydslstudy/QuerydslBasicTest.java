@@ -1,9 +1,10 @@
 package com.example.querydslstudy;
 
 import com.example.querydslstudy.entity.Member;
-import com.example.querydslstudy.entity.QMember;
+import com.example.querydslstudy.entity.QTeam;
 import com.example.querydslstudy.entity.Team;
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,10 +13,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-
 import java.util.List;
 
-import static com.example.querydslstudy.entity.QMember.*;
+import static com.example.querydslstudy.entity.QMember.member;
+import static com.example.querydslstudy.entity.QTeam.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -112,11 +113,11 @@ public class QuerydslBasicTest {
                 .fetch(); //list로 조회
 
         Member fetchOne = queryFactory
-                .selectFrom(QMember.member)
+                .selectFrom(member)
                 .fetchOne(); //단건조회 / 결과없으면 null. 2개이상이면 nonunique 예외 터짐
 
         Member fetchFirst = queryFactory
-                .selectFrom(QMember.member)
+                .selectFrom(member)
                 .fetchFirst();// .limit(1).fetchOne() 과 같다.
 
 
@@ -187,6 +188,44 @@ public class QuerydslBasicTest {
         assertThat(queryResults.getOffset()).isEqualTo(1);
         assertThat(queryResults.getResults().size()).isEqualTo(2);
 
+    }
+
+    @Test
+    public void aggregation () throws Exception{
+
+        List<Tuple> result = queryFactory
+                .select(member.count(),
+                        member.age.sum(),
+                        member.age.avg(),
+                        member.age.max(),
+                        member.age.min())
+                .from(member)
+                .fetch();
+        Tuple tuple = result.get(0);
+        assertThat(tuple.get(member.count())).isEqualTo(4);
+        assertThat(tuple.get(member.age.sum())).isEqualTo(100);
+        assertThat(tuple.get(member.age.avg())).isEqualTo(25);
+        assertThat(tuple.get(member.age.max())).isEqualTo(40);
+        assertThat(tuple.get(member.age.min())).isEqualTo(10);
+
+    }
+
+    /**
+     * 팀의 이름과 각 팀의 평균 연력을 구해라.
+     */
+    @Test
+    public void group () throws Exception {
+        List<Tuple> result = queryFactory
+                .select(team.name, member.age.avg())
+                .from(member)
+                .join(member.team, team)
+                .groupBy(team.name)
+                .fetch();
+        Tuple teamA = result.get(0);
+        Tuple teamB = result.get(1);
+
+        assertThat(teamA.get(team.name)).isEqualTo("teamA");
+        assertThat((teamA.get(member.age.avg()))).isEqualTo(15);
     }
 
 }
