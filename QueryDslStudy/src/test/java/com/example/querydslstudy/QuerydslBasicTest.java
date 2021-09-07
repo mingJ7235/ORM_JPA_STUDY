@@ -30,7 +30,7 @@ public class QuerydslBasicTest {
 
     @BeforeEach  //data를 미리 넣어두기 위해 세팅
     public void before () {
-        JPAQueryFactory queryFactory = new JPAQueryFactory(em); //entitymanager를 넘겨야함
+        queryFactory = new JPAQueryFactory(em); //entitymanager를 넘겨야함
         Team teamA = new Team("teamA");
         Team teamB = new Team("teamB");
         em.persist(teamA);
@@ -112,9 +112,9 @@ public class QuerydslBasicTest {
                 .selectFrom(member)
                 .fetch(); //list로 조회
 
-        Member fetchOne = queryFactory
-                .selectFrom(member)
-                .fetchOne(); //단건조회 / 결과없으면 null. 2개이상이면 nonunique 예외 터짐
+//        Member fetchOne = queryFactory
+//                .selectFrom(member)
+//                .fetchOne(); //단건조회 / 결과없으면 null. 2개이상이면 nonunique 예외 터짐
 
         Member fetchFirst = queryFactory
                 .selectFrom(member)
