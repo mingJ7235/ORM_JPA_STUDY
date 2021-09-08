@@ -13,6 +13,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
 import java.util.List;
 
 import static com.example.querydslstudy.entity.QMember.member;
@@ -344,6 +346,50 @@ public class QuerydslBasicTest {
 //        assertThat(result)
 //                .extracting("username")
 //                .containsExactly("teamA", "teamB");
+    }
+    /**
+     * fetch join
+     * - sql에서 제공하는 기능이아니다.
+     * - sql 조인을 활용하여 연관된 entity를 sql 한번에 조회하는 기능이다.
+     * - 주로 성능 최적화에 사용하는 방법이다.
+     */
+
+    // fetch join 미적용
+    @PersistenceUnit
+    EntityManagerFactory emf;
+
+    @Test
+    public void noFetchJoin () {
+        em.flush();
+        em.clear();
+
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1"))
+                .fetchOne();
+
+        //lazy 조회기때문에 team은 조회가안된다.
+
+        //증명하기 위해 -> emf를 사용하여 로드가 되었는지 여부를 조회해보면된다.
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
+        assertThat(loaded).as("fetch join 미적용").isFalse(); // team이 로드되지 않았다면 false이고, 테스트를 통과하게 된다.
+    }
+
+    @Test
+    public void useFetchJoin () {
+        em.flush();
+        em.clear();
+
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .join(member.team, team).fetchJoin() //fetch join을 넣는 법
+                .where(member.username.eq("member1"))
+                .fetchOne();
+        // -> 연관된 모든 것을 다 가져온다.
+
+        //증명하기 위해 -> emf를 사용하여 로드가 되었는지 여부를 조회해보면된다.
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
+        assertThat(loaded).as("fetch join 미적용").isTrue(); // team이 로드되지 않았다면 false이고, 테스트를 통과하게 된다.
     }
 
 
