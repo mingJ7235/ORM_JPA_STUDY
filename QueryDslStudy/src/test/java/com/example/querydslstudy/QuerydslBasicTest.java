@@ -228,4 +228,123 @@ public class QuerydslBasicTest {
         assertThat((teamA.get(member.age.avg()))).isEqualTo(15);
     }
 
+    /**
+     * teamA에 소속된 모든 회원을 찾아라
+     */
+    @Test
+    public void join () {
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .join(member.team, team) //leftjoin,
+                .where(team.name.eq("teamA"))
+                .fetch();
+
+        assertThat(result) //username 이 member1, member2 인지 검증하는 방법
+                .extracting("username") //username 필드
+                .containsExactly("member1", "member2"); //result 검색결과의 username 필드가 member1, member2인지 검증
+    }
+
+    /**
+     *
+     * 연관관계없어도 다 조회하는 세타조인
+     * JPA도 연관관계가 없을 지라도 조인이 가능하다.
+     *
+     * from 절에 여러 엔티티를 선택하여 세타조인이 가능하다.
+     * but outer 조인이 불가능했다.(left join이안됫음) -> 조인 on을 사용하면 outer 조인도 가능하다.(hibernate 업그레이드)
+     *
+     * 억지성 예제
+     * 회원의 이름이 팀 이름과 같은 회원을 조회... -> 약간 억지가있지만
+     */
+    @Test
+    public void theta_join () {
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+        em.persist(new Member("teamC"));
+
+        List<Member> result = queryFactory
+                .select(member)
+                .from(member, team) //세타조인은 그냥 바로 이렇게 엔터티 나열. 위의 join과 다름
+                .where(member.username.eq(team.name))
+                .fetch();
+        for (Member member1 : result) {
+            System.out.println("member1 = " + member1);
+        }
+
+        assertThat(result)
+                .extracting("username")
+                .containsExactly("teamA", "teamB");
+    }
+
+    /**
+     * join on 절
+     * - join 대상을 필터링
+     * - 연관관계 없는 엔티티 외부 조인 (세타조인)
+     */
+    /**
+     * 1. join 대상을 필터링
+     * 예) 회원과 팀을 조인하면서, 팀 이름이 teamA인 팀만 조인, 회원은 모두 조회
+     * JPQL : select m, t from Member m left join m.team t on t.name = 'teamA'
+     */
+    @Test
+    public void join_on_filtering() {
+        List<Tuple> result = queryFactory //tuple로 나온 이유는, select 타입이 member와 team이기때문이다.
+                .select(member, team)
+                .from(member)
+                .leftJoin(member.team, team)
+                .on(team.name.eq("teamA")) //on을 사용하여 한번 더 필터링 (outer join은 where가 먹지 않는다.)
+                    //.join(member.team, team)
+                    //.on(team.name.eq("teamA"))
+                    //.where(team.name.eq("teamA")) //innerjoin 에서 on은 where와 같은 결과를 가져온다. //보통은 where를 많이 사용한다.
+                                                    //but, outer join에서는 on만 기능한다. where는 기능안한다.
+                .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+        /** iter 결과물
+         * tuple = [Member(id=3, username=member1, age=10), Team(id=1, name=teamA)]
+         * tuple = [Member(id=4, username=member2, age=20), Team(id=1, name=teamA)]
+         * tuple = [Member(id=5, username=member3, age=30), null]
+         * tuple = [Member(id=6, username=member4, age=40), null]
+         */
+    }
+
+    /**
+     * 2. 연관관계가 없는 엔티티 외부 조인 (세타조인)
+     * 예) 회원의 이름이 팀 이름과 같은 대상 외부 조인
+     */
+
+    @Test
+    public void join_on_no_relation () {
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+        em.persist(new Member("teamC"));
+
+        List<Tuple> result = queryFactory
+                .select(member, team)
+                .from(member)
+                //막조인이기때문에 member.team, team 이 아니라 그냥 team
+                //member.team, team 을 넣으면 id로 서로 조인이 되어서 가져오게됨
+                .leftJoin(team).on(member.username.eq(team.name))
+                .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+        /** iter 결과
+         * tuple = [Member(id=3, username=member1, age=10), null]
+         * tuple = [Member(id=4, username=member2, age=20), null]
+         * tuple = [Member(id=5, username=member3, age=30), null]
+         * tuple = [Member(id=6, username=member4, age=40), null]
+         * tuple = [Member(id=7, username=teamA, age=0), Team(id=1, name=teamA)]
+         * tuple = [Member(id=8, username=teamB, age=0), Team(id=2, name=teamB)]
+         * tuple = [Member(id=9, username=teamC, age=0), null]
+         */
+
+//        assertThat(result)
+//                .extracting("username")
+//                .containsExactly("teamA", "teamB");
+    }
+
+
 }
