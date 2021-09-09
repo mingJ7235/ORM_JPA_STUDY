@@ -2,6 +2,7 @@ package com.example.querydslstudy;
 
 import com.example.querydslstudy.entity.Member;
 import com.example.querydslstudy.entity.QMember;
+import com.example.querydslstudy.entity.QTeam;
 import com.example.querydslstudy.entity.Team;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
@@ -501,6 +502,33 @@ public class QuerydslBasicTest {
         assertThat(result).extracting("age")
                 .containsExactly(20, 30, 40);
     }
+    
+    @Test
+    public void subQueryInTest () {
+        QMember memberSub = new QMember("memberSub");
+        QTeam teamSub = new QTeam("teamSub");
+
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .where(member.age.in(
+                        select(memberSub.age)
+                                .from(memberSub)
+                                .where(memberSub.age.goe(20)
+                                        .and(memberSub.team.name.eq(
+                                                select(teamSub.name)
+                                                        .from(teamSub)
+                                                        .where(teamSub.name.eq("teamA"))
+                                        ))
+                                )
+                ))
+                .fetch();
+
+        for (Member resultMember : result) {
+            System.out.println("resultMember = " + resultMember);
+        }
+
+        assertThat(result.size()).isEqualTo(1);
+    }
 
     /**
      * select 절에서 subquery 사용
@@ -602,6 +630,31 @@ public class QuerydslBasicTest {
          * member.age.stringValue() 이부분이 중요하다.
          * 문자가 아닌 다른 타입들은 stringValue()로 문자로 변환할 수 있다. 이 방법은 ENUM을 처리할 때도 자주 사용한다.
          */
+    }
+
+    @Test
+    public void concatStrTest () {
+
+        QMember memberSub = new QMember("memberSub");
+
+        List<String> result = queryFactory
+                .select(member.username.concat("_by_")
+                        .concat(member.team.name)
+                        .concat("_age_")
+                        .concat(member.age.stringValue()))
+                .from(member)
+                .where(member.age.goe(
+                        select(memberSub.age.avg())
+                                .from(memberSub)
+                ).and(member.team.name.eq("teamB")))
+                .fetch();
+
+        for (String concatS : result) {
+            System.out.println("concatS = " + concatS);
+        }
+
+        System.out.println("result size : " + result.size());
+        assertThat(result.size()).isEqualTo(0);
     }
 
     /**
