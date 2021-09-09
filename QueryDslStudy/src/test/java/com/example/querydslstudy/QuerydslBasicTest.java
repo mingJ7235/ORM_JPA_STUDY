@@ -568,4 +568,56 @@ public class QuerydslBasicTest {
          */
     }
 
+    /**
+     * Projection
+     *
+     * - projection 이란 select 대상을 지정하는 것을 말한다.
+     *
+     * - 프로젝션 대상이 하나라면 반환타입을 명확하게 지정할 수 있다.
+     * - 둘 이상이면 tuple 이나 DTO로 조회
+     */
+
+    // projection 이 하나인경우
+    @Test
+    public void simpleProjection () {
+        List<String> result = queryFactory
+                .select(member.username)
+                .from(member)
+                .fetch();
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+
+        List<Member> fetch = queryFactory
+                .select(member)
+                .from(member)
+                .fetch();
+
+        for (Member fetch1 : fetch) {
+            System.out.println("fetch1 = " + fetch1);
+        }
+    }
+    //tuple로 projection을 받을 경우
+    @Test
+    public void tupleProjection() {
+        List<Tuple> result = queryFactory
+                .select(member.username, member.age) //타입이 다름
+                .from(member)
+                .fetch();
+
+        for (Tuple tuple : result) {
+            String username = tuple.get(member.username);
+            Integer age = tuple.get(member.age);
+            System.out.println("username = " + username);
+            System.out.println("age = " + age);
+        }
+        /**
+         * tuple 은 querydsl 패키지안에 있는것이므로
+         * service 계층이나 로직에서 사용하면 좋지않다.
+         * repository 계층에서 사용하고 다른곳에서 의존이 없도록 하는 것이 좋다.
+         * 그렇기때문에, 바깥 계층으로 보낼때는 DTO로 묶어서 보내는 것이 좋다.
+         */
+    }
+
+
 }
