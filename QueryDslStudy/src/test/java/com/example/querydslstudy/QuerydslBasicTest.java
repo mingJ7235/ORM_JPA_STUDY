@@ -2,13 +2,11 @@ package com.example.querydslstudy;
 
 import com.example.querydslstudy.entity.Member;
 import com.example.querydslstudy.entity.QMember;
-import com.example.querydslstudy.entity.QTeam;
 import com.example.querydslstudy.entity.Team;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,8 +20,8 @@ import javax.persistence.PersistenceUnit;
 import java.util.List;
 
 import static com.example.querydslstudy.entity.QMember.member;
-import static com.example.querydslstudy.entity.QTeam.*;
-import static com.querydsl.jpa.JPAExpressions.*;
+import static com.example.querydslstudy.entity.QTeam.team;
+import static com.querydsl.jpa.JPAExpressions.select;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -397,6 +395,21 @@ public class QuerydslBasicTest {
         assertThat(loaded).as("fetch join 미적용").isTrue(); // team이 로드되지 않았다면 false이고, 테스트를 통과하게 된다.
     }
 
+    @Test
+    public void useFetchJoinReview () {
+        em.flush();
+        em.clear();
+
+        Member result = queryFactory
+                .selectFrom(member)
+                .join(member.team, team).fetchJoin()
+                .where(member.username.eq("member1"))
+                .fetchOne();
+
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(result.getTeam());
+        assertThat(loaded).as("fetch join 적용").isTrue();
+    }
+
     /**
      * Sub Query
      * - com.querydsl.jpa.JPAExpressions를 사용한다.
@@ -420,6 +433,29 @@ public class QuerydslBasicTest {
 
         assertThat(result).extracting("age")
                 .containsExactly(40);
+
+
+    }
+    /**
+     * 나이가 가장 적은 회원 조회
+     */
+    
+    @Test
+    public void subQueryPractice () {
+
+        QMember memberSub = new QMember("memberSub");
+
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .where(member.age.eq(
+                        select(memberSub.age.min())
+                                .from(memberSub)
+                ))
+                .fetch();
+
+        for (Member member1 : result) {
+            System.out.println("member1.getAge() = " + member1.getAge());
+        }
 
 
     }
