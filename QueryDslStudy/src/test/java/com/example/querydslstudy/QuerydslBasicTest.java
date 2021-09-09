@@ -6,6 +6,8 @@ import com.example.querydslstudy.entity.QTeam;
 import com.example.querydslstudy.entity.Team;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -494,7 +496,76 @@ public class QuerydslBasicTest {
      */
 
     /**
-     *
+     * case 문
+     * - select, 조건절 (where) 에서 사용가능
      */
+
+    @Test
+    public void basicCase () {
+        List<String> result = queryFactory
+                .select(member.age
+                        .when(10).then("열살")
+                        .when(20).then("스무살")
+                        .otherwise("기타")
+                )
+                .from(member)
+                .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
+
+    @Test
+    public void complesCase () {
+        List<String> result = queryFactory
+                .select(new CaseBuilder()
+                        .when(member.age.between(0, 20)).then("0~20살")
+                        .when(member.age.between(20, 30)).then("21살~30살")
+                        .otherwise("기타")
+                )
+                .from(member)
+                .fetch();
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
+
+    /**
+     * Querydsl로 상수, 문자 더하기
+     */
+
+    @Test
+    public void constant () {
+        List<Tuple> result = queryFactory
+                .select(member.username, Expressions.constant("A"))
+                .from(member)
+                .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+    }
+
+    @Test
+    public void concat () {
+        //{usernmae}_{age} 를하려고하는 것
+        List<String> result = queryFactory
+                                                                //age는 int이므로 stringValue로 형변환해야함
+                .select(member.username.concat("_").concat(member.age.stringValue()))
+                .from(member)
+                .where(member.username.eq("member1"))
+                .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+
+        /**
+         * *참고
+         * member.age.stringValue() 이부분이 중요하다.
+         * 문자가 아닌 다른 타입들은 stringValue()로 문자로 변환할 수 있다. 이 방법은 ENUM을 처리할 때도 자주 사용한다.
+         */
+    }
 
 }
