@@ -9,6 +9,8 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jdk.nashorn.internal.objects.annotations.Getter;
+import jdk.nashorn.internal.objects.annotations.Setter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 import static com.example.querydslstudy.entity.QMember.member;
@@ -612,6 +616,27 @@ public class QuerydslBasicTest {
     }
 
     @Test
+    public void constantPractic () {
+
+        LocalDateTime now = LocalDateTime.now();
+        QMember memberSub = new QMember("memberSub");
+
+        List<Tuple> result = queryFactory
+                .select(member.age,
+                        Expressions.asDateTime(now))
+                .from(member)
+                .where(member.age.goe(
+                        select(memberSub.age.avg())
+                                .from(memberSub)
+                ))
+                .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+    }
+
+    @Test
     public void concat () {
         //{usernmae}_{age} 를하려고하는 것
         List<String> result = queryFactory
@@ -708,5 +733,25 @@ public class QuerydslBasicTest {
          */
     }
 
+    @Test
+    public void tupleMultiProjectionTest () {
 
+        int cnt = 0;
+        QMember memberSub = new QMember("memberSub");
+
+        List<Tuple> tupleResult = queryFactory
+                .select(member.username.concat("_team:")
+                        .concat(member.team.name), member.age)
+                .from(member)
+                .where(member.age.goe(
+                        select(memberSub.age.avg())
+                                .from(memberSub)
+                ))
+                .fetch();
+
+        for (Tuple tuple : tupleResult) {
+            cnt += 1;
+            System.out.println("tuple" + cnt + " = " + tuple);
+        }
+    }
 }
