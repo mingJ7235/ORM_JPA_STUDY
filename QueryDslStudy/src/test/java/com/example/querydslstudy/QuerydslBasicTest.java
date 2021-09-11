@@ -1,11 +1,13 @@
 package com.example.querydslstudy;
 
+import com.example.querydslstudy.dto.MemberDto;
 import com.example.querydslstudy.entity.Member;
 import com.example.querydslstudy.entity.QMember;
 import com.example.querydslstudy.entity.QTeam;
 import com.example.querydslstudy.entity.Team;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -752,6 +754,41 @@ public class QuerydslBasicTest {
         for (Tuple tuple : tupleResult) {
             cnt += 1;
             System.out.println("tuple" + cnt + " = " + tuple);
+        }
+    }
+    /**
+     * Projection 과 결과반환 DTO
+     *
+     */
+    // DTO 조회 - JPQL로 할경우 new operation 을 사용해야한다.
+    // package 명을 다 적어야한다. 이게 진짜 별로임. DTO의 package이름을 다 적어줘야하며
+    // 생성자 방식만 지원한다.
+    @Test
+    public void findDtoByJpql () {
+        List<MemberDto> resultList = em.createQuery("select new com.example.querydslstudy.dto.MemberDto(m.username, m.age) " +
+                        "from Member m", MemberDto.class)
+                .getResultList();
+        for (MemberDto memberDto : resultList) {
+            System.out.println("memberDto = " + memberDto);
+        }
+    }
+    /**
+     * Querydsl 빈 생성 (Bean population)
+     */
+
+    // 1. setter 로 가져오는 방법 property 접근 방법
+    // DTO는 기본 생성자가 있어야한다.
+    @Test
+    public void findDtoBySetterQueryDSL () {
+        List<MemberDto> result = queryFactory
+                .select(Projections.bean(MemberDto.class,
+                        member.username,
+                        member.age))
+                .from(member)
+                .fetch();
+
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto = " + memberDto);
         }
     }
 }
