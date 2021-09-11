@@ -1,15 +1,18 @@
 package com.example.querydslstudy;
 
 import com.example.querydslstudy.dto.MemberDto;
+import com.example.querydslstudy.dto.UserDto;
 import com.example.querydslstudy.entity.Member;
 import com.example.querydslstudy.entity.QMember;
 import com.example.querydslstudy.entity.QTeam;
 import com.example.querydslstudy.entity.Team;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jdk.nashorn.internal.objects.annotations.Getter;
 import jdk.nashorn.internal.objects.annotations.Setter;
@@ -777,7 +780,7 @@ public class QuerydslBasicTest {
      */
 
     // 1. setter 로 가져오는 방법 property 접근 방법
-    // DTO는 기본 생성자가 있어야한다.
+    // DTO는 기본 생성자, setter 가 있어야한다.
     @Test
     public void findDtoBySetterQueryDSL () {
         List<MemberDto> result = queryFactory
@@ -791,4 +794,73 @@ public class QuerydslBasicTest {
             System.out.println("memberDto = " + memberDto);
         }
     }
+
+    //2 . field로 하는 방법
+    //getter setter 없어도 된다.
+    // field에 꽂아준다.
+    @Test
+    public void findDtoByFieldQueryDSL () {
+        List<MemberDto> result = queryFactory
+                .select(Projections.fields(MemberDto.class,
+                        member.username,
+                        member.age))
+                .from(member)
+                .fetch();
+
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto = " + memberDto);
+        }
+    }
+
+    //3. 생성자 접근 방법
+    @Test
+    public void findDtoByConstructorQueryDSL () {
+        List<MemberDto> result = queryFactory
+                .select(Projections.constructor(MemberDto.class,
+                        member.username,
+                        member.age)) //생성자 접근시 유의사항은, DTO클래스에 있는 생성자의 파라미터 타입들의 순서를 맞춰서 넣어야한다.
+                .from(member)
+                .fetch();
+
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto = " + memberDto);
+        }
+    }
+
+    // DTO의 필드명이 다를경우, 필드명에 서브쿼리를 넣고싶은경우
+    @Test
+    public void findUserDtoByFieldQueryDSL () {
+        QMember memberSub = new QMember("memberSub");
+        List<UserDto> result = queryFactory
+                .select(Projections.fields(UserDto.class,
+                        member.username.as("name"), //userDto 의 핆드명이 name이므로 이렇게 해줘야 인식한다. dto의 이름이 다를때는 이렇게 넣어주면된다.
+                        /*member.age*/
+                        ExpressionUtils.as(
+                                JPAExpressions
+                                        .select(memberSub.age.max())
+                                        .from(memberSub), "age" // age 부분을 subquery로 만든것. alias를 줘야한다.
+                        )))
+                .from(member)
+                .fetch();
+
+        for (UserDto userDto : result) {
+            System.out.println("userDto = " + userDto);
+        }
+    }
+
+    //생성자 주입시 필드명이 다를 때
+    @Test
+    public void findUserDtoByConstructorQueryDSL () {
+        List<UserDto> result = queryFactory
+                .select(Projections.constructor(UserDto.class,
+                        member.username, //constructor 주입은, field명으로 가지않고 타입으로 가기때문에 위와달리 dto와 entity의 필드명이 달라도 상관없다.
+                        member.age))
+                .from(member)
+                .fetch();
+
+        for (UserDto userDto : result) {
+            System.out.println("userDto = " + userDto);
+        }
+    }
+
 }
