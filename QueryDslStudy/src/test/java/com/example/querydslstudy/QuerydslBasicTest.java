@@ -31,6 +31,7 @@ import java.util.List;
 
 import static com.example.querydslstudy.entity.QMember.member;
 import static com.example.querydslstudy.entity.QTeam.team;
+import static com.querydsl.core.types.Projections.*;
 import static com.querydsl.jpa.JPAExpressions.select;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -228,6 +229,27 @@ public class QuerydslBasicTest {
     /**
      * 팀의 이름과 각 팀의 평균 연력을 구해라.
      */
+
+    @Test
+    public void groupTest () {
+        List<Tuple> result = queryFactory
+                .select(team.name, member.age.avg())
+                .from(member)
+                .join(member.team, team)
+                .groupBy(team.name)
+                .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple.get(team.name) = " + tuple.get(team.name));
+            System.out.println("tuple.get(member.age) = " + tuple.get(member.age));
+        }
+
+        System.out.println(result.get(0));
+        System.out.println(result.get(1));
+
+    }
+
+
     @Test
     public void group () throws Exception {
         List<Tuple> result = queryFactory
@@ -784,9 +806,24 @@ public class QuerydslBasicTest {
     @Test
     public void findDtoBySetterQueryDSL () {
         List<MemberDto> result = queryFactory
-                .select(Projections.bean(MemberDto.class,
+                .select(bean(MemberDto.class,
                         member.username,
                         member.age))
+                .from(member)
+                .fetch();
+
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto = " + memberDto);
+        }
+    }
+    @Test
+    public void newFindDtoBySetterQueryDSL () {
+        List<MemberDto> result = queryFactory
+                .select(bean(
+                        MemberDto.class,
+                        member.username,
+                        member.age
+                ))
                 .from(member)
                 .fetch();
 
@@ -801,7 +838,7 @@ public class QuerydslBasicTest {
     @Test
     public void findDtoByFieldQueryDSL () {
         List<MemberDto> result = queryFactory
-                .select(Projections.fields(MemberDto.class,
+                .select(fields(MemberDto.class,
                         member.username,
                         member.age))
                 .from(member)
@@ -812,11 +849,25 @@ public class QuerydslBasicTest {
         }
     }
 
+    @Test // fields로 넣을 때에는 주의점 : dto와 entity의 필드명이 같지않으면 as를 사용하여 적용시켜줘야한다.
+    public void newFindDtoByFieldQueryDsl () {
+        List<UserDto> result = queryFactory
+                .select(fields(UserDto.class,
+                        member.username.as("name"),
+                        member.age
+                ))
+                .from(member)
+                .fetch();
+        for (UserDto userDto : result) {
+            System.out.println("userDto = " + userDto);
+        }
+    }
+
     //3. 생성자 접근 방법
     @Test
     public void findDtoByConstructorQueryDSL () {
         List<MemberDto> result = queryFactory
-                .select(Projections.constructor(MemberDto.class,
+                .select(constructor(MemberDto.class,
                         member.username,
                         member.age)) //생성자 접근시 유의사항은, DTO클래스에 있는 생성자의 파라미터 타입들의 순서를 맞춰서 넣어야한다.
                 .from(member)
@@ -827,12 +878,23 @@ public class QuerydslBasicTest {
         }
     }
 
+    @Test
+    public void newFindDtoConstructorQueryDsl() {
+        List<MemberDto> result = queryFactory
+                .select(constructor(MemberDto.class, //생성자로 접근할때는 생성자의 파라미터 순서를 맞춰야한다.
+                        member.username,
+                        member.age
+                ))
+                .from(member)
+                .fetch();
+    }
+
     // DTO의 필드명이 다를경우, 필드명에 서브쿼리를 넣고싶은경우
     @Test
     public void findUserDtoByFieldQueryDSL () {
         QMember memberSub = new QMember("memberSub");
         List<UserDto> result = queryFactory
-                .select(Projections.fields(UserDto.class,
+                .select(fields(UserDto.class,
                         member.username.as("name"), //userDto 의 핆드명이 name이므로 이렇게 해줘야 인식한다. dto의 이름이 다를때는 이렇게 넣어주면된다.
                         /*member.age*/
                         ExpressionUtils.as(
@@ -848,11 +910,27 @@ public class QuerydslBasicTest {
         }
     }
 
+    @Test
+    public void findUserDtoByFieldAndSubquerybyQuerydsl () {
+        QMember memberSub = new QMember("memberSub");
+        List<UserDto> result = queryFactory
+                .select(fields(
+                        UserDto.class,
+                        member.username.as("name"),
+                        ExpressionUtils.as(
+                                select(memberSub.age.max())
+                                        .from(memberSub), "age" //alias를 꼭 써줘야한다.
+                        )
+                ))
+                .from(member)
+                .fetch();
+    }
+
     //생성자 주입시 필드명이 다를 때
     @Test
     public void findUserDtoByConstructorQueryDSL () {
         List<UserDto> result = queryFactory
-                .select(Projections.constructor(UserDto.class,
+                .select(constructor(UserDto.class,
                         member.username, //constructor 주입은, field명으로 가지않고 타입으로 가기때문에 위와달리 dto와 entity의 필드명이 달라도 상관없다.
                         member.age))
                 .from(member)
