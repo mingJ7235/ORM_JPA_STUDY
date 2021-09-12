@@ -1,6 +1,7 @@
 package com.example.querydslstudy;
 
 import com.example.querydslstudy.dto.MemberDto;
+import com.example.querydslstudy.dto.QMemberDto;
 import com.example.querydslstudy.dto.UserDto;
 import com.example.querydslstudy.entity.Member;
 import com.example.querydslstudy.entity.QMember;
@@ -941,4 +942,21 @@ public class QuerydslBasicTest {
         }
     }
 
+    /**
+     * 프로젝션과 결과 반됨
+     */
+
+    @Test
+    public void findDtoByQueryProjection () {
+        List<MemberDto> result = queryFactory
+                //dto 클래스에 @queryprojection
+                .select(new QMemberDto(member.username, member.age)) // constructor 의 순서로.
+                                //이것의 장점은 constructor에 파라미터가 다른다면, 컴파일오류가나서 쉽게 에러를 잡아낼 수 있다.
+                                //but, DTO 클래스가 QueryDSL에 의존성을 가지게 된다. 아키텍츠젹인 고민을 해야한다.
+                .from(member)
+                .fetch();
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto = " + memberDto);
+        }
+    }
 }
