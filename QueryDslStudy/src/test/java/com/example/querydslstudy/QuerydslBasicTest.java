@@ -7,16 +7,16 @@ import com.example.querydslstudy.entity.Member;
 import com.example.querydslstudy.entity.QMember;
 import com.example.querydslstudy.entity.QTeam;
 import com.example.querydslstudy.entity.Team;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ExpressionUtils;
-import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jdk.nashorn.internal.objects.annotations.Getter;
-import jdk.nashorn.internal.objects.annotations.Setter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +27,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 import static com.example.querydslstudy.entity.QMember.member;
@@ -35,6 +34,7 @@ import static com.example.querydslstudy.entity.QTeam.team;
 import static com.querydsl.core.types.Projections.*;
 import static com.querydsl.jpa.JPAExpressions.select;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.contentOf;
 
 @SpringBootTest
 @Transactional
@@ -959,4 +959,84 @@ public class QuerydslBasicTest {
             System.out.println("memberDto = " + memberDto);
         }
     }
+
+    /**
+     * 동적쿼리 - BooleanBuilder 사용
+     *
+     * 동적 쿼리를 해결하는 두가지 방식
+     * - BooleanBuilder
+     * - Where 다중 파라미터 사용
+     */
+    //BooleanBuilder
+    @Test
+    public void dynamicQuery_BooleanBuilder () {
+        String usernameParam = "member1";
+        Integer ageParam = null;
+
+        List<Member> result = searchMember1(usernameParam, ageParam);
+        assertThat(result.size()).isEqualTo(1);
+
+    }
+
+    private List<Member> searchMember1(String usernameCond, Integer ageCond) {
+        //BooleanBuilder에서 조립
+        BooleanBuilder builder = new BooleanBuilder(/*member.username.eq(usernameCond)*/); //생성자 파라미터에는 무조건 들어가야하는 조건 즉, not null 조건을 넣는것임!
+        if(usernameCond != null) {
+            builder.and(member.username.eq(usernameCond));
+        }
+
+        if(ageCond != null) {
+            builder.and(member.age.eq(ageCond));
+        }
+
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .where(builder)
+                .fetch();
+
+        return result;
+    }
+
+    //Where 다중 파라미터 사용
+    @Test
+    public void dynamicQuery_whereParam () {
+        String usernameParam = "member1";
+        Integer ageParam = null;
+
+        List<Member> result = searchMember2(usernameParam, ageParam);
+        assertThat(result.size()).isEqualTo(1);
+
+    }
+
+    //쿼리가 바로 직관적으로 파악이되어 유지보수시 편리하다.
+    private List<Member> searchMember2(String usernameCond, Integer ageCond) {
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .where(usernameEq(usernameCond), ageEq(ageCond)) //where 파라미터에 null 이들어오면 아무동작하지 않는다. 이렇게 되기때문에, 동적쿼리가 완성된다.
+                //.where(allEq(usernameCond, ageCond)) 이렇게 composition도 가능하다. allEq라는 메서드를 만들어서 사용가능
+                .fetch();
+
+        return result;
+    }
+
+    private BooleanExpression usernameEq(String usernameCond) {
+//        if (usernameCond == null) {
+//            return null;
+//        }
+//        return member.username.eq(usernameCond);
+
+        return usernameCond == null ? null : member.username.eq(usernameCond); //간단할때는 삼항연산자 !
+    }
+
+    private BooleanExpression ageEq(Integer ageCond) {
+        return ageCond != null ? member.age.eq(ageCond) : null;
+    }
+
+    //이렇게 조립이 가능하다. 메서드화 시켜서 조립을해서 사용가능
+    //또한 다른 쿼리에서 재사용까지 가능
+    //JAVA코드로 쿼리를 짤 수 있으므로 매우 자유롭게 조합도 가능하다.
+    private Predicate allEq (String usernameCond, Integer ageCond) {
+        return usernameEq(usernameCond).and(ageEq(ageCond));
+    }
+
 }
